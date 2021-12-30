@@ -1,0 +1,15 @@
+[package]
+name = "learn-rust"
+description = "Awesomeness"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+clap = { version = "~3.0.0-rc.8", features = [ "cargo" ] }
+winreg = "~0.10.1"
+winapi = { version = "~0.3.9", features = ["synchapi", "winbase", "errhandlingapi"] }
+widestring = "~0.5.1"
+uuid = { version = "~0.8.2", features = ["v4"] }
+failure = "~0.1.8"
+sysinfo = "~0.22.3"
+same-file = "~1.0.6"
