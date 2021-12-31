@@ -210,20 +210,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e2abad23fbc42b3700f2f279844dc832adb2b2eb069b2df918f455c4e18cc646"
 
 [[package]]
-name = "learn-rust"
-version = "0.1.0"
-dependencies = [
- "clap",
- "failure",
- "same-file",
- "sysinfo",
- "uuid",
- "widestring",
- "winapi",
- "winreg",
-]
-
-[[package]]
 name = "libc"
 version = "0.2.112"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -360,6 +346,20 @@ name = "scopeguard"
 version = "1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d29ab0c6d3fc0ee92fe66e2d99f700eab17a8d57d1c1d3b748380fb20baa78cd"
+
+[[package]]
+name = "steamed"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "failure",
+ "same-file",
+ "sysinfo",
+ "uuid",
+ "widestring",
+ "winapi",
+ "winreg",
+]
 
 [[package]]
 name = "strsim"

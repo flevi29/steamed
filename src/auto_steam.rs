@@ -42,12 +42,13 @@ pub mod auto_steam {
 
         pub(super) trait MyPrivateRegTraits {
             fn get_running_appid(&self) -> u32;
+            fn get_current_userid(&self) -> u32;
             fn get_steam_pid(&self) -> usize;
             fn get_app_running_value(&self, app_reg: &RegKey) -> u32;
             fn get_app_updating_value(&self, app_reg: &RegKey) -> u32;
             fn get_app_installed_value(&self, app_reg: &RegKey) -> u32;
             fn get_app_name_value(&self, app_reg: &RegKey) -> u32;
-            fn create_new_command(&self) -> Command;
+            fn create_new_steam_command(&self) -> Command;
             fn handle_a_game_is_already_running(&self);
         }
     }
@@ -56,6 +57,11 @@ pub mod auto_steam {
         fn get_running_appid(&self) -> u32 {
             let running: u32 = self.base_steam_reg.get_value("RunningAppID").unwrap();
             return running;
+        }
+
+        fn get_current_userid(&self) -> u32 {
+            let userid: u32 = self.active_process_reg_key.get_value("ActiveUser").unwrap();
+            return userid;
         }
 
         fn get_steam_pid(&self) -> usize {
@@ -83,7 +89,7 @@ pub mod auto_steam {
             return name;
         }
 
-        fn create_new_command(&self) -> Command {
+        fn create_new_steam_command(&self) -> Command {
             let mut command = Command::new(&self.steam_path);
             command.stdin(Stdio::null())
                 .stdout(Stdio::null())
@@ -107,6 +113,7 @@ pub mod auto_steam {
     }
 
     pub trait MyRegTraits {
+        fn wait_for_login(&self) -> bool;
         fn wait_for_game_start(&self, app_id: &str) -> bool;
         fn wait_for_game_exit(&self, app_id: &str) -> ();
         fn list_installed_and_choose(&self) -> String;
@@ -118,6 +125,17 @@ pub mod auto_steam {
     }
 
     impl MyRegTraits for MyRegVars {
+        fn wait_for_login(&self) -> bool {
+            if self.get_current_userid() != 0 { return true; }
+
+            let now = Instant::now();
+            loop {
+                watch_reg(&self.active_process_reg_key, 3000);
+                if self.get_current_userid() != 0 { return true; }
+                if now.elapsed().as_secs() > 60 { return false; }
+            }
+        }
+
         fn wait_for_game_start(&self, appid: &str) -> bool {
             let app_reg_key = self.apps_reg_key
                 .open_subkey(appid)
@@ -193,7 +211,7 @@ pub mod auto_steam {
         }
 
         fn shut_down_steam(&self) -> Child {
-            return self.create_new_command()
+            return self.create_new_steam_command()
                 .arg("-shutdown")
                 .spawn()
                 .expect("Something went wrong when shutting down steam.exe");
@@ -222,21 +240,14 @@ pub mod auto_steam {
         }
 
         fn start_steam_login(&self, user: &str, pass: &str, appid: &str) -> Child {
-            return self.create_new_command()
-                .args([
-                    "-silent",
-                    "-login",
-                    user,
-                    pass,
-                    "-applaunch",
-                    appid
-                ])
+            return self.create_new_steam_command()
+                .args(["-silent", "-login", user, pass, "-applaunch", appid])
                 .spawn()
                 .expect("Something went wrong when starting steam.exe");
         }
 
         fn start_steam(&self) -> Child {
-            return self.create_new_command()
+            return self.create_new_steam_command()
                 .spawn()
                 .expect("Something went wrong when starting steam.exe");
         }

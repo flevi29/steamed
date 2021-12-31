@@ -45,18 +45,22 @@ fn main() {
     // I could shut down asynchronously, make choice and then await the async shutdown
     auto_steam.shutdown_steam_if_running();
 
-    // todo: check if login successful, by registry attribute of CurrentUserID or something
     let mut main_child = auto_steam.start_steam_login(&user, &pass, &appid);
 
-    if auto_steam.wait_for_game_start(&appid) {
-        auto_steam.wait_for_game_exit(&appid);
-        auto_steam.shut_down_steam()
-            .wait()
-            .expect("failed to wait on child");
-        main_child.wait().expect("failed to wait on child");
-        auto_steam.start_steam();
+    if auto_steam.wait_for_login() {
+        if auto_steam.wait_for_game_start(&appid) {
+            auto_steam.wait_for_game_exit(&appid);
+            auto_steam.shut_down_steam()
+                .wait()
+                .expect("failed to wait on child");
+            main_child.wait().expect("failed to wait on child");
+            auto_steam.start_steam();
+        } else {
+            println!("wait_for_game_start was false");
+            main_child.wait().expect("failed to wait on child");
+        }
     } else {
-        println!("wait_for_game_start was false");
+        println!("wait_for_login was false");
         main_child.wait().expect("failed to wait on child");
     }
 }
