@@ -20,8 +20,8 @@ pub mod auto_steam {
 
     fn watch_reg(reg_key: &RegKey, timeout: u32) -> WatchResponse {
         let watch_timeout = match timeout {
-            0 => { reg_watch::Timeout::Infinite }
-            _ => { reg_watch::Timeout::Milli(timeout) }
+            0 => reg_watch::Timeout::Infinite,
+            _ => reg_watch::Timeout::Milli(timeout)
         };
         return reg_watch::watch(
             &reg_key,
@@ -117,6 +117,7 @@ pub mod auto_steam {
         fn wait_for_game_start(&self, app_id: &str) -> bool;
         fn wait_for_game_exit(&self, app_id: &str) -> ();
         fn list_installed_and_choose(&self) -> String;
+        fn check_appid_availability(&self, appid: &str);
         fn shut_down_steam(&self) -> Child;
         fn shutdown_steam_if_running(&self);
         fn start_steam_login(&self, user: &str, pass: &str, appid: &str) -> Child;
@@ -208,6 +209,11 @@ pub mod auto_steam {
             }
 
             return apps[choice][1].to_owned();
+        }
+
+        fn check_appid_availability(&self, appid: &str) {
+            self.apps_reg_key.open_subkey(appid)
+                .expect(&(appid.to_owned() + " is not valid"));
         }
 
         fn shut_down_steam(&self) -> Child {

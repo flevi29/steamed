@@ -32,6 +32,14 @@ fn get_args() -> ArgMatches {
             .value_name("PASSWORD")
             .help("Steam password")
             .takes_value(true))
+        .arg(Arg::new("appid")
+            .required(false)
+            .forbid_empty_values(true)
+            .short('a')
+            .long("appid")
+            .value_name("APPID")
+            .help("Steam app id")
+            .takes_value(true))
         .get_matches();
 }
 
@@ -40,8 +48,12 @@ fn main() {
     let args = get_args();
     let user = args.value_of("user").unwrap().to_string();
     let pass = args.value_of("pass").unwrap().to_string();
-    let appid = auto_steam.list_installed_and_choose();
+    let appid = match args.value_of("appid") {
+        None => auto_steam.list_installed_and_choose(),
+        Some(val) => val.to_string()
+    };
 
+    auto_steam.check_appid_availability(&appid);
     // I could shut down asynchronously, make choice and then await the async shutdown
     auto_steam.shutdown_steam_if_running();
 
